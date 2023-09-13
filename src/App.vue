@@ -6,6 +6,14 @@ import { useCartStore } from "@/stores/CartStore";
 
 const cartStore = useCartStore()
 const productStore = useProductStore()
+cartStore.$onAction(({ name, store, args, after, onError }) => {
+  if (name === 'addItems') {
+    after(() => {             // If your action return something, you can add a result to callback parameter
+      console.log(args[0]);   // and use it on after or onError
+    })
+  }
+})
+
 productStore.fill();
 </script>
 

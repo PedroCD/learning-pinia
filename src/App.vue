@@ -8,14 +8,26 @@ import {reactive, ref} from "vue";
 const cartStore = useCartStore()
 const productStore = useProductStore()
 const history = reactive([])
+const future = reactive([])
 const doingHistory = ref(false)
 
 history.push((JSON.stringify(cartStore.$state)))
 
+const redo = () => {
+  const latesState = future.pop()
+
+  if (!latesState) return
+
+  doingHistory.value = true
+  history.push(latesState)
+  cartStore.$state = JSON.parse(latesState)
+  doingHistory.value = false
+
+}
 const undo = () => {
   if (history.length === 1) return
   doingHistory.value = true
-  history.pop()
+  future.push(history.pop())
   cartStore.$state = JSON.parse(history.at(-1))
   doingHistory.value = false
 }
@@ -23,6 +35,7 @@ const undo = () => {
 cartStore.$subscribe((mutation, state) => {
   if (!doingHistory.value) {
     history.push(JSON.stringify(state))
+    future.splice(0, future.length)
   }
 })
 
@@ -44,6 +57,7 @@ productStore.fill();
   <div class="container">
     <div class="mb-5 flex justify-end">
       <AppButton @click="undo">Undo</AppButton>
+      <AppButton class="ml-2" @click="redo">Redo</AppButton>
     </div>
     <TheHeader />
     <ul class="sm:flex flex-wrap lg:flex-nowrap gap-5">
